@@ -15,11 +15,12 @@ class GameMainScreen extends StatefulWidget {
 }
 
 class _GameMainScreenState extends State<GameMainScreen> {
-  int score = 0;
-  double multiplier = 1.0;
-  int auto = 0;
+  int score = startingScore;
+  double stepMultiplier = startingMultiplier;
+  int autoPoints = startingAutoPoints;
 
-  Timer? timer;
+  Timer? timerSteps;
+  Timer? timerAuto;
 
   List<int> steps = [];
   int firstStepValueInSession = 0;
@@ -29,7 +30,15 @@ class _GameMainScreenState extends State<GameMainScreen> {
   @override
   void initState() {
     super.initState();
-    timer = Timer.periodic(const Duration(seconds: secondsBetweenBandChecks), (Timer t) => updateStepsScore());
+    timerSteps = Timer.periodic(const Duration(seconds: secondsBetweenBandChecks), (Timer t) => updateStepsScore());
+    timerAuto = Timer.periodic(const Duration(seconds: secondsBetweenAutoScoreIncreases), (Timer t) => updateAutoScore());
+  }
+
+  @override
+  void dispose() {
+    timerSteps?.cancel();
+    timerAuto?.cancel();
+    super.dispose();
   }
 
   @override
@@ -41,20 +50,43 @@ class _GameMainScreenState extends State<GameMainScreen> {
       body: Column(
         children: [
           Row(
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text("Points: $score"),
+              Padding(
+                padding: const EdgeInsets.all(20),
+                child: Text(
+                  "Points: $score",
+                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 40.0),
+                ),
+              ),
+            ],
+          ),
+          const Divider(),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(20),
+                child: Text(
+                  "Step Multiplier: $stepMultiplier",
+                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 25.0),
+                ),
+              ),
             ],
           ),
           Row(
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text("Multiplier: $multiplier"),
+              Padding(
+                padding: const EdgeInsets.all(20),
+                child: Text(
+                  "Auto Steps: $autoPoints",
+                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 25.0),
+                ),
+              )
             ],
           ),
-          Row(
-            children: [
-              Text("Producing: $auto"),
-            ],
-          ),
+          const Divider(),
         ],
       ),
     );
@@ -65,10 +97,10 @@ class _GameMainScreenState extends State<GameMainScreen> {
     setState(() {
       if (isNewValueAvailable) {
         if (steps.length == 1) {
-          score += max(0, multiplier * steps.last).floor();
+          score += max(0, stepMultiplier * steps.last).floor();
         }
         if (steps.length >= 2) {
-          score += max(0, multiplier * (steps[steps.length - 1] - steps[steps.length - 2])).floor();
+          score += max(0, stepMultiplier * (steps[steps.length - 1] - steps[steps.length - 2])).floor();
         }
         isNewValueAvailable = false;
       }
@@ -101,5 +133,13 @@ class _GameMainScreenState extends State<GameMainScreen> {
     });
     await characteristic.read();
     return characteristic.read();
+  }
+
+  updateAutoScore() {
+    setState(() {
+      if (autoPoints > 0) {
+        score += max(0, autoPoints).floor();
+      }
+    });
   }
 }
