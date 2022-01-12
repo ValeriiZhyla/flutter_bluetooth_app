@@ -3,26 +3,21 @@ import 'package:flutter_blue/flutter_blue.dart';
 
 import '../router.dart';
 import 'ble_config.dart';
-
+import 'package:flutter_bluetooth_app/key.dart';
 class DeviceList extends StatefulWidget {
   DeviceList({Key? key}) : super(key: key);
 
   final FlutterBlue flutterBlue = FlutterBlue.instance;
   final List<BluetoothDevice> devicesList = <BluetoothDevice>[];
   final Map<Guid, List<int>> readValues = Map<Guid, List<int>>();
-
   @override
-  _DeviceListState createState() => _DeviceListState();
+  DeviceListState createState() => DeviceListState();
 }
 
-class _DeviceListState extends State<DeviceList> {
+class DeviceListState extends State<DeviceList> {
   final _writeController = TextEditingController();
   BluetoothDevice? _connectedDevice;
   List<BluetoothService>? _services;
-  List<int> steps = [];
-  int firstStepValueInSession = 0;
-  bool isFirstValueSet = false;
-  bool newValuesAvailable = false;
 
   _addDeviceTolist(final BluetoothDevice device) {
     if (!widget.devicesList.contains(device)) {
@@ -118,26 +113,7 @@ class _DeviceListState extends State<DeviceList> {
         body: _buildView(),
       );
 
-  Future<List<int>> _fetchStepCharacteristic() async {
-    BluetoothCharacteristic characteristic = getStepCharacteristic();
-    var sub = getStepCharacteristic().value.listen((value) {
-      setState(() {
-        int stepsCount = value[1];
-        if (!isFirstValueSet && stepsCount > 0) {
-          firstStepValueInSession = stepsCount;
-        }
-        steps.add(stepsCount);
-        newValuesAvailable = true;
-      });
-    });
-    await characteristic.read();
-    return characteristic.read();
-  }
 
-  int readNewValuesFromDevice() {
-    newValuesAvailable = false;
-    return steps.last - firstStepValueInSession;
-  }
 
   BluetoothCharacteristic getStepCharacteristic() {
     BluetoothService? stepService = _services
@@ -150,10 +126,5 @@ class _DeviceListState extends State<DeviceList> {
         .where((element) => element.uuid.toString() == stepsCharacteristicsUUID)
         .first;
     return stepCharacteristic;
-  }
-
-  void printStepCounterList() async {
-    var stepCounter = await _fetchStepCharacteristic();
-    print(stepCounter.toString());
   }
 }

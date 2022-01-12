@@ -5,6 +5,7 @@ import 'ble_devices/list_of_devices.dart';
 import 'menu/home.dart';
 import 'menu/start_game.dart';
 import 'game/main_game_screen.dart';
+import 'key.dart';
 
 const String homeRoute = '/';
 const String deviceListRoute = '/list_of_devices';
@@ -18,7 +19,7 @@ class GameRouter {
       case homeRoute:
         return MaterialPageRoute(builder: (_) => const HomeScreen());
       case deviceListRoute:
-        return MaterialPageRoute(builder: (_) => DeviceList());
+        return MaterialPageRoute(builder: (_) => DeviceList(key: bluetoothKey));
       case rulesRoute:
         return MaterialPageRoute(builder: (_) => const RulesScreen());
       case startGameRoute:
