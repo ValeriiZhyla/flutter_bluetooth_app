@@ -15,9 +15,11 @@ class GameMainScreen extends StatefulWidget {
 }
 
 class _GameMainScreenState extends State<GameMainScreen> {
-  int score = startingScore;
+  double playerPoints = startingScore;
   double stepMultiplier = startingMultiplier;
-  int autoPoints = startingAutoPoints;
+  double autoPoints = startingAutoPoints;
+  double nitroCoefficient = startingNitroCoefficient;
+
 
   Timer? timerSteps;
   Timer? timerAuto;
@@ -26,6 +28,15 @@ class _GameMainScreenState extends State<GameMainScreen> {
   int firstStepValueInSession = 0;
   bool isFirstValueSet = false;
   bool isNewValueAvailable = false;
+
+  int dopingPrice = startingDopingPrice;
+  int roboticLegPrice = startingRoboticLegPrice;
+  int nitroPrice = startingNitroPrice;
+  int redBullVodkaPrice = startingRedBullVodkaPrice;
+  int reachDeadLinePrice = startingReachDeadLinePrice;
+
+
+  Random random = Random();
 
   @override
   void initState() {
@@ -55,7 +66,7 @@ class _GameMainScreenState extends State<GameMainScreen> {
               Padding(
                 padding: const EdgeInsets.all(20),
                 child: Text(
-                  "Points: $score",
+                  "Points: ${playerPoints.floor()}",
                   style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 40.0),
                 ),
               ),
@@ -87,24 +98,63 @@ class _GameMainScreenState extends State<GameMainScreen> {
             ],
           ),
           const Divider(),
+          Expanded(
+            child: ListTile(
+              leading: const Icon(Icons.control_point_rounded),
+              title: const Text("Doping"),
+              subtitle: Text("$dopingPrice"),
+              enabled: hasEnoughPoints(dopingPrice),
+              onTap: () => buyDoping(),
+              trailing: const Icon(Icons.shopping_cart),
+            ),
+          ),
+          const Divider(),
+          Expanded(
+            child: ListTile(
+              leading: const Icon(Icons.control_point_rounded),
+              title: const Text("Robotic leg"),
+              subtitle: Text("$roboticLegPrice"),
+              enabled: hasEnoughPoints(roboticLegPrice),
+              onTap: () => buyRoboticLeg(),
+              trailing: const Icon(Icons.shopping_cart),
+            ),
+          ),
+          const Divider(),
+          Expanded(
+            child: ListTile(
+              leading: const Icon(Icons.control_point_rounded),
+              title: const Text("Nitro"),
+              subtitle: Text("$nitroPrice"),
+              enabled: hasEnoughPoints(nitroPrice),
+              onTap: () => buyNitro(),
+              trailing: const Icon(Icons.shopping_cart),
+            ),
+          ),
+          const Divider(),
+          Expanded(
+            child: ListTile(
+              leading: const Icon(Icons.control_point_rounded),
+              title: const Text("Red Bull + Vodka"),
+              subtitle: Text("$redBullVodkaPrice"),
+              enabled: hasEnoughPoints(redBullVodkaPrice),
+              onTap: () => buyRedBullVodka(),
+              trailing: const Icon(Icons.shopping_cart),
+            ),
+          ),
+          const Divider(),
+          Expanded(
+            child: ListTile(
+              leading: const Icon(Icons.control_point_rounded),
+              title: const Text("Deadline"),
+              subtitle: Text("$reachDeadLinePrice"),
+              enabled: hasEnoughPoints(reachDeadLinePrice),
+              onTap: () => buyDeadline(),
+              trailing: const Icon(Icons.shopping_cart),
+            ),
+          ),
         ],
       ),
     );
-  }
-
-  updateStepsScore() {
-    fetchDeviceInformation();
-    setState(() {
-      if (isNewValueAvailable) {
-        if (steps.length == 1) {
-          score += max(0, stepMultiplier * steps.last).floor();
-        }
-        if (steps.length >= 2) {
-          score += max(0, stepMultiplier * (steps[steps.length - 1] - steps[steps.length - 2])).floor();
-        }
-        isNewValueAvailable = false;
-      }
-    });
   }
 
   Future<List<int>> fetchDeviceInformation() async {
@@ -135,11 +185,78 @@ class _GameMainScreenState extends State<GameMainScreen> {
     return characteristic.read();
   }
 
+  updateStepsScore() {
+    fetchDeviceInformation();
+    setState(() {
+      if (isNewValueAvailable) {
+        if (steps.length == 1) {
+          playerPoints += max(0, stepMultiplier * steps.last).floor();
+        }
+        if (steps.length >= 2) {
+          playerPoints += max(0, stepMultiplier * (steps[steps.length - 1] - steps[steps.length - 2])).floor();
+        }
+        isNewValueAvailable = false;
+      }
+    });
+  }
+
   updateAutoScore() {
     setState(() {
       if (autoPoints > 0) {
-        score += max(0, autoPoints).floor();
+        playerPoints += max(0, autoPoints * nitroCoefficient).floor();
       }
+    });
+  }
+
+  hasEnoughPoints(multiplierIncreasePrice) {
+    return playerPoints >= multiplierIncreasePrice;
+  }
+
+  double multiplyWithRandomCoefficient(valueToMultiply) {
+    double minimum = lowerBoundRandomCoefficient;
+    double maximum = upperBoundRandomCoefficient;
+    double randomCoefficient = random.nextDouble() * (maximum - minimum) + minimum;
+    return valueToMultiply * randomCoefficient;
+  }
+
+  buyDoping() {
+    setState(() {
+      playerPoints -= dopingPrice;
+      dopingPrice = multiplyWithRandomCoefficient(dopingPrice).floor();
+      stepMultiplier *= dopingMultiplierCoefficient;
+    });
+  }
+
+  buyRoboticLeg() {
+    setState(() {
+      playerPoints -= roboticLegPrice;
+      roboticLegPrice = multiplyWithRandomCoefficient(roboticLegPrice).floor();
+      autoPoints += roboticLegAutoPoints * nitroCoefficient;
+    });
+  }
+
+
+  buyNitro() {
+    setState(() {
+      playerPoints -= nitroPrice;
+      nitroPrice = multiplyWithRandomCoefficient(nitroPrice).floor();
+      nitroCoefficient *= nitroNitroMultiplierCoefficient;
+    });
+  }
+
+  buyRedBullVodka() {
+    setState(() {
+      playerPoints -= redBullVodkaPrice;
+      redBullVodkaPrice = multiplyWithRandomCoefficient(redBullVodkaPrice).floor();
+      stepMultiplier *= redBullVodkaMultiplierCoefficient;
+    });
+  }
+
+  buyDeadline() {
+    setState(() {
+      playerPoints -= reachDeadLinePrice;
+      reachDeadLinePrice = multiplyWithRandomCoefficient(reachDeadLinePrice).floor();
+      nitroCoefficient *= deadLineNitroMultiplierCoefficient;
     });
   }
 }
