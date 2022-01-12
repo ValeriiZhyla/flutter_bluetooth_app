@@ -139,85 +139,22 @@ class _MyHomePageState extends State<MyHomePage> {
         ),
       );
     }
-    if (characteristic.properties.write) {
-      buttons.add(
-        ButtonTheme(
-          minWidth: 10,
-          height: 20,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 4),
-            child: RaisedButton(
-              child: Text('WRITE', style: TextStyle(color: Colors.white)),
-              onPressed: () async {
-                await showDialog(
-                    context: context,
-                    builder: (BuildContext context) {
-                      return AlertDialog(
-                        title: Text("Write"),
-                        content: Row(
-                          children: <Widget>[
-                            Expanded(
-                              child: TextField(
-                                controller: _writeController,
-                              ),
-                            ),
-                          ],
-                        ),
-                        actions: <Widget>[
-                          FlatButton(
-                            child: Text("Send"),
-                            onPressed: () {
-                              characteristic.write(
-                                  utf8.encode(_writeController.value.text));
-                              Navigator.pop(context);
-                            },
-                          ),
-                          FlatButton(
-                            child: Text("Cancel"),
-                            onPressed: () {
-                              Navigator.pop(context);
-                            },
-                          ),
-                        ],
-                      );
-                    });
-              },
-            ),
-          ),
-        ),
-      );
-    }
-    if (characteristic.properties.notify) {
-      buttons.add(
-        ButtonTheme(
-          minWidth: 10,
-          height: 20,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 4),
-            child: RaisedButton(
-              child: Text('NOTIFY', style: TextStyle(color: Colors.white)),
-              onPressed: () async {
-                characteristic.value.listen((value) {
-                  widget.readValues[characteristic.uuid] = value;
-                });
-                await characteristic.setNotifyValue(true);
-              },
-            ),
-          ),
-        ),
-      );
-    }
-
     return buttons;
   }
 
   ListView _buildConnectDeviceView() {
     List<Container> containers = <Container>[];
 
+
+
+    printStepCounterList();
+
     for (BluetoothService service in _services!) {
       List<Widget> characteristicsWidget = <Widget>[];
 
       for (BluetoothCharacteristic characteristic in service.characteristics) {
+        //poller
+
         characteristicsWidget.add(
           Align(
             alignment: Alignment.centerLeft,
@@ -277,4 +214,30 @@ class _MyHomePageState extends State<MyHomePage> {
     ),
     body: _buildView(),
   );
+
+  Future<List<int>> _fetchStepCharacteristic() async {
+    String stepsServiceUUID = "0000fee0-0000-1000-8000-00805f9b34fb";
+    BluetoothService? stepService = _services?.where((element) => element.uuid.toString() == stepsServiceUUID).first;
+    if (stepService == null) {
+      throw Exception("Service with UUID [$stepsServiceUUID] was not found");
+    }
+    String stepsCharacteristicsUUID = "00000007-0000-3512-2118-0009af100700";
+    BluetoothCharacteristic stepCharacteristic = stepService.characteristics.where((element) => element.uuid.toString() == stepsCharacteristicsUUID).first;
+
+    var sub = stepCharacteristic.value.listen((value) {
+      setState(() {
+        print(value.toString());
+      });
+    });
+    await stepCharacteristic.read();
+
+    return stepCharacteristic.read();
+
+  }
+
+  void printStepCounterList() async {
+    var stepCounter = await _fetchStepCharacteristic();
+    print(stepCounter.toString());
+  }
+
 }
