@@ -79,7 +79,7 @@ class _GameMainScreenState extends State<GameMainScreen> {
               Padding(
                 padding: const EdgeInsets.all(20),
                 child: Text(
-                  "Step Multiplier: $stepMultiplier",
+                  "Step Multiplier: ${stepMultiplier.toStringAsFixed(2)}",
                   style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 25.0),
                 ),
               ),
@@ -91,7 +91,7 @@ class _GameMainScreenState extends State<GameMainScreen> {
               Padding(
                 padding: const EdgeInsets.all(20),
                 child: Text(
-                  "Auto Steps: $autoPoints",
+                  "Auto Steps: ${autoPoints * nitroCoefficient}",
                   style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 25.0),
                 ),
               )
