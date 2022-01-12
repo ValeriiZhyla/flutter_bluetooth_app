@@ -4,12 +4,14 @@ import 'package:flutter_blue/flutter_blue.dart';
 import '../router.dart';
 import 'ble_config.dart';
 import 'package:flutter_bluetooth_app/key.dart';
+
 class DeviceList extends StatefulWidget {
   DeviceList({Key? key}) : super(key: key);
 
   final FlutterBlue flutterBlue = FlutterBlue.instance;
   final List<BluetoothDevice> devicesList = <BluetoothDevice>[];
   final Map<Guid, List<int>> readValues = Map<Guid, List<int>>();
+
   @override
   DeviceListState createState() => DeviceListState();
 }
@@ -30,9 +32,7 @@ class DeviceListState extends State<DeviceList> {
   @override
   void initState() {
     super.initState();
-    widget.flutterBlue.connectedDevices
-        .asStream()
-        .listen((List<BluetoothDevice> devices) {
+    widget.flutterBlue.connectedDevices.asStream().listen((List<BluetoothDevice> devices) {
       for (BluetoothDevice device in devices) {
         _addDeviceTolist(device);
       }
@@ -50,16 +50,18 @@ class DeviceListState extends State<DeviceList> {
     for (BluetoothDevice device in widget.devicesList) {
       containers.add(
         Container(
-          height: 50,
           child: Padding(
-            padding: const EdgeInsets.all(8.0),
+            padding: const EdgeInsets.fromLTRB(20.0, 10.0, 20.0, 10.0),
             child: Row(
               children: <Widget>[
                 Expanded(
                   child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: <Widget>[
                       Text(
-                          device.name == '' ? '(unknown device)' : device.name),
+                        device.name == '' ? '(unknown device)' : device.name,
+                        style: TextStyle(fontSize: 18),
+                      ),
                       Text(device.id.toString()),
                     ],
                   ),
@@ -113,18 +115,12 @@ class DeviceListState extends State<DeviceList> {
         body: _buildView(),
       );
 
-
-
   BluetoothCharacteristic getStepCharacteristic() {
-    BluetoothService? stepService = _services
-        ?.where((element) => element.uuid.toString() == stepsServiceUUID)
-        .first;
+    BluetoothService? stepService = _services?.where((element) => element.uuid.toString() == stepsServiceUUID).first;
     if (stepService == null) {
       throw Exception("Service with UUID [$stepsServiceUUID] was not found");
     }
-    BluetoothCharacteristic stepCharacteristic = stepService.characteristics
-        .where((element) => element.uuid.toString() == stepsCharacteristicsUUID)
-        .first;
+    BluetoothCharacteristic stepCharacteristic = stepService.characteristics.where((element) => element.uuid.toString() == stepsCharacteristicsUUID).first;
     return stepCharacteristic;
   }
 }
