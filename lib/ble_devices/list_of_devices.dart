@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_blue/flutter_blue.dart';
 
-import 'router.dart';
+import '../router.dart';
 
 class DeviceList extends StatefulWidget {
   DeviceList({Key? key}) : super(key: key);

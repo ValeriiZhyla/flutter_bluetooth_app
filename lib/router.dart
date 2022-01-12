@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 
-import 'rules.dart';
-import 'list_of_devices.dart';
-import 'home.dart';
-import 'start_game.dart';
-import 'game_screen.dart';
+import 'menu/rules.dart';
+import 'ble_devices/list_of_devices.dart';
+import 'menu/home.dart';
+import 'menu/start_game.dart';
+import 'game/main_game_screen.dart';
 
 const String homeRoute = '/';
 const String deviceListRoute = '/list_of_devices';
