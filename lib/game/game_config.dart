@@ -1,1 +1,1 @@
-const int secondsBetweenBandChecks = 1;
+const int secondsBetweenBandChecks = 4;

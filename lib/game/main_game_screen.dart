@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_blue/flutter_blue.dart';
@@ -23,12 +24,12 @@ class _GameMainScreenState extends State<GameMainScreen> {
   List<int> steps = [];
   int firstStepValueInSession = 0;
   bool isFirstValueSet = false;
-  bool newValuesAvailable = false;
+  bool isNewValueAvailable = false;
 
   @override
   void initState() {
     super.initState();
-    timer = Timer.periodic(const Duration(seconds: secondsBetweenBandChecks), (Timer t) => readNewValuesFromDevice());
+    timer = Timer.periodic(const Duration(seconds: secondsBetweenBandChecks), (Timer t) => updateStepsScore());
   }
 
   @override
@@ -59,11 +60,22 @@ class _GameMainScreenState extends State<GameMainScreen> {
     );
   }
 
-  checkBandForNewSteps() {
+  updateStepsScore() {
+    fetchDeviceInformation();
+    setState(() {
+      if (isNewValueAvailable) {
+        if (steps.length == 1) {
+          score += max(0, multiplier * steps.last).floor();
+        }
+        if (steps.length >= 2) {
+          score += max(0, multiplier * (steps[steps.length - 1] - steps[steps.length - 2])).floor();
+        }
+        isNewValueAvailable = false;
+      }
+    });
   }
 
-
-  Future<List<int>> _fetchStepCharacteristic() async {
+  Future<List<int>> fetchDeviceInformation() async {
     BluetoothCharacteristic? characteristic = bluetoothKey.currentState?.getStepCharacteristic();
     if (characteristic == null) {
       throw Exception("Device Error");
@@ -73,20 +85,21 @@ class _GameMainScreenState extends State<GameMainScreen> {
         int stepsCount = value[1];
         if (!isFirstValueSet && stepsCount > 0) {
           firstStepValueInSession = stepsCount;
+          isFirstValueSet = true;
         }
-        print(stepsCount);
-        steps.add(stepsCount);
-        newValuesAvailable = true;
+        if (isFirstValueSet) {
+          stepsCount -= firstStepValueInSession;
+        }
+        if (steps.isEmpty) {
+          steps.add(stepsCount);
+          isNewValueAvailable = true;
+        } else if (steps.last != stepsCount) {
+          steps.add(stepsCount);
+          isNewValueAvailable = true;
+        }
       });
     });
     await characteristic.read();
     return characteristic.read();
   }
-
-  int readNewValuesFromDevice() {
-    _fetchStepCharacteristic();
-    newValuesAvailable = false;
-    return steps.last - firstStepValueInSession;
-  }
-
 }
